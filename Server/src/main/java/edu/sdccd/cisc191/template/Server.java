@@ -2,14 +2,6 @@ package edu.sdccd.cisc191.template;
 
 import java.net.*;
 import java.io.*;
-import java.util.Arrays;
-import java.util.Scanner;
-import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 
 /**
  * This program is a server that takes connection requests on
@@ -49,15 +41,12 @@ public class Server {
     }
 
     public static void main(String[] args) {
-    //    Server server = new Server();
-    //    try {
-    //        server.start(4444);
-    //        server.stop();
-    //    } catch(Exception e) {
-    //        e.printStackTrace();
-    //    }
-
-        // Application.launch(CLI.class, args);
-        Application.launch(GUI.class, args);
+        Server server = new Server();
+        try {
+            server.start(4444);
+            server.stop();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 } //end class Server
