@@ -2,6 +2,7 @@ package edu.sdccd.cisc191.template;
 
 import java.net.*;
 import java.io.*;
+import java.util.Scanner;
 
 /**
  * This program opens a connection to a computer specified
@@ -27,9 +28,9 @@ public class Client {
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     }
 
-    public CustomerResponse sendRequest() throws Exception {
-        out.println(CustomerRequest.toJSON(new CustomerRequest(1)));
-        return CustomerResponse.fromJSON(in.readLine());
+    public DictResponse sendRequest(String request, String payload) throws Exception {
+        out.println(DictRequest.toJSON(new DictRequest(request, payload)));
+        return DictResponse.fromJSON(in.readLine());
     }
 
     public void stopConnection() throws IOException {
@@ -41,7 +42,39 @@ public class Client {
         Client client = new Client();
         try {
             client.startConnection("127.0.0.1", 4444);
-            System.out.println(client.sendRequest().toString());
+            Scanner scanner = new Scanner(System.in);
+            String input;
+            do {
+                String request = "";
+                String payload = "";
+
+                System.out.println(
+                        "Choose from the following:\n(e)xit\n(i)nsert\n(r)emove\n(s)earch");
+                input = scanner.nextLine().trim().toLowerCase();
+                switch (input) {
+                    case "i":
+                        request = "insert";
+                        break;
+                    case "r":
+                        request = "remove";
+                        break;
+                    case "s":
+                        request = "search";
+                        break;
+                    default:
+                        break;
+                }
+                if (!input.equals("e")) {
+                    System.out.println("What would you like to " + request + "?");
+                    input = scanner.nextLine().trim().toLowerCase();
+                    payload = input;
+
+                    System.out.println("\n" + client.sendRequest(request, payload).toString());
+                    System.out.println("Press enter to continue...");
+                    System.in.read();
+                }
+            } while(!input.equals("e"));
+
             client.stopConnection();
         } catch(Exception e) {
             e.printStackTrace();

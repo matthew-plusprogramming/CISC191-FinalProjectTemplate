@@ -2,6 +2,9 @@ package edu.sdccd.cisc191.template;
 
 import java.net.*;
 import java.io.*;
+import java.util.HashMap;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * This program is a server that takes connection requests on
@@ -16,28 +19,30 @@ import java.io.*;
 public class Server {
     private ServerSocket serverSocket;
     private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
+    RequestConsumer consumer;
+    boolean stopServer = false;
+    TrieNode trieHead;
 
     public void start(int port) throws Exception {
-        serverSocket = new ServerSocket(port);
-        clientSocket = serverSocket.accept();
-        out = new PrintWriter(clientSocket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        BlockingQueue<Socket> requestQueue = new ArrayBlockingQueue<>(10);
+        trieHead = new TrieNode(new HashMap<>(), false);
+        consumer = new RequestConsumer(requestQueue, trieHead);
 
-        String inputLine;
-        while ((inputLine = in.readLine()) != null) {
-            CustomerRequest request = CustomerRequest.fromJSON(inputLine);
-            CustomerResponse response = new CustomerResponse(request.getId(), "Jane", "Doe");
-            out.println(CustomerResponse.toJSON(response));
+        new Thread(consumer).start();
+
+        // Use the blocking queue and queue up incoming requests to be handled by consumer
+        serverSocket = new ServerSocket(port);
+        while (!stopServer) {
+            clientSocket = serverSocket.accept();
+            requestQueue.put(clientSocket);
         }
     }
 
     public void stop() throws IOException {
-        in.close();
-        out.close();
         clientSocket.close();
         serverSocket.close();
+        consumer.stop();
+        stopServer = true;
     }
 
     public static void main(String[] args) {
